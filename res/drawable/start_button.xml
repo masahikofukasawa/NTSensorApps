@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ビューがタッチされているときは「stop.png」を表示 -->
+    <item
+        android:drawable="@drawable/stop"
+        android:state_pressed="true"/>
+
+    <!-- ビューが タッチされていないときは「start.png」を表示 -->
+    <item
+        android:drawable="@drawable/start"
+        android:state_pressed="false"/>
+
+</selector>
