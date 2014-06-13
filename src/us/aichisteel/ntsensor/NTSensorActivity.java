@@ -32,6 +32,8 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Paint.Align;
 import android.hardware.usb.UsbManager;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
@@ -41,6 +43,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import us.aichisteel.ntsensor.R;
@@ -80,7 +83,7 @@ public class NTSensorActivity extends Activity {
 
 	private boolean mRunningMainLoop;
 
-	private static final String ACTION_USB_PERMISSION = "com.example.ntsensor.USB_PERMISSION";
+	private static final String ACTION_USB_PERMISSION = "us.aichisteel.ntsensor.USB_PERMISSION";
 
 	private XYMultipleSeriesRenderer mRenderer;
 	private XYMultipleSeriesDataset dataset;
@@ -222,7 +225,7 @@ public class NTSensorActivity extends Activity {
 		btStart.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-					startSensor();
+				startSensor();
 			}
 		});
 
@@ -350,7 +353,6 @@ public class NTSensorActivity extends Activity {
 	};
 
 	boolean lastDataIs0x0D = false;
-	int count = 0;
 
 	void setSerialDataToTextView(byte[] rbuf, int len) {
 		for (int i = 0; i < len; i++) {
@@ -410,7 +412,6 @@ public class NTSensorActivity extends Activity {
 			String strWrite = changeEscapeSequence(stStartCommand);
 			mSerial.write(strWrite.getBytes(), strWrite.length());
 			sensorData.initData();
-			count = 0;
 		} else {
 		}
 	}
@@ -453,6 +454,7 @@ public class NTSensorActivity extends Activity {
 			} else if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
 				detachedUi();
 				mSerial.close();
+				finish();
 			} else if (ACTION_USB_PERMISSION.equals(action)) {
 				synchronized (this) {
 					if (!mSerial.isOpened()) {
@@ -465,7 +467,6 @@ public class NTSensorActivity extends Activity {
 			}
 		}
 	};
-
 
 	/**
 	 * <p>
@@ -578,23 +579,15 @@ public class NTSensorActivity extends Activity {
 		}
 		return new String(strout.toString());
 	}
+
 	private enum MenuId {
-		DISPLAY_TIME,
-		DISPLAY_TIME_1SEC,
-		DISPLAY_TIME_2SEC,
-		DISPLAY_TIME_3SEC,
-		DISPLAY_TIME_4SEC,
-		DISPLAY_TIME_5SEC,
-		DISPLAY_TIME_10SEC,
-		SENSOR_TYPE,
-		SENSOR_TYPE_NT,
-		SENSOR_TYPE_UT,
-		SET_OFFSET,
-		ABOUT;
+		DISPLAY_TIME, DISPLAY_TIME_1SEC, DISPLAY_TIME_2SEC, DISPLAY_TIME_3SEC, DISPLAY_TIME_4SEC, DISPLAY_TIME_5SEC, DISPLAY_TIME_10SEC, SENSOR_TYPE, SENSOR_TYPE_NT, SENSOR_TYPE_UT, SET_OFFSET, ABOUT;
 	}
-	public static <E extends Enum<E>> E fromOrdinal(Class<E> enumClass, int ordinal) {
-	    E[] enumArray = enumClass.getEnumConstants();
-	    return enumArray[ordinal];
+
+	public static <E extends Enum<E>> E fromOrdinal(Class<E> enumClass,
+			int ordinal) {
+		E[] enumArray = enumClass.getEnumConstants();
+		return enumArray[ordinal];
 	}
 
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -633,8 +626,6 @@ public class NTSensorActivity extends Activity {
 
 	public boolean onOptionsItemSelected(MenuItem item) {
 		MenuId menuid = fromOrdinal(MenuId.class, item.getItemId());
-		AlertDialog.Builder builder;
-		AlertDialog alert;
 		switch (menuid) {
 		case DISPLAY_TIME:
 			break;
@@ -663,15 +654,19 @@ public class NTSensorActivity extends Activity {
 			setOffset();
 			break;
 		case ABOUT:
-			builder = new AlertDialog.Builder(NTSensorActivity.this);
-			builder.setTitle("About");
-			builder.setMessage("Nano/Micro Tesla Sensor Application\n"
-					+ "Provider: Aichi Steel Corporation\n"
-					+ "Developer: Masahiko Fukasawa\n"
-					+ "Uses: Physicaloid Library\n"
-					+ "Uses: Achartengine 1.1.0\n");
-			alert = builder.create();
-			alert.show();
+			((TextView) new AlertDialog.Builder(NTSensorActivity.this)
+					.setTitle("About")
+					.setIcon(android.R.drawable.ic_dialog_info)
+					.setMessage(
+									Html.fromHtml("<p>AMI Nano/Micro Tesla Sensor Application<br>"
+											+ "<a href=\"http://www.aichi-mi.com\">Aichi Micro Intelligent Corporation</a></p>"
+											+ "<p>This software includes the following works that are distributed in the Apache License 2.0.<br>"
+											+ " - Physicaloid Library<br>"
+											+ " - Achartengine 1.1.0</p>"
+											))
+					.show()
+					.findViewById(android.R.id.message))
+					.setMovementMethod(LinkMovementMethod.getInstance());
 			break;
 
 		}

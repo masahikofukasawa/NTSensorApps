@@ -18,7 +18,7 @@ External Libraries(included in the project)
 System Requirements for NTSensor.apk
 ---------------------------------
 - Android Tablet with OTG capability
-- Android 4.0 or more
+- Android 4.0 or higher
 - USB-OTG adapter/cable
 
 
