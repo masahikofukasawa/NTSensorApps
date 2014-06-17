@@ -23,6 +23,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Paint.Align;
 import android.text.Html;
@@ -223,6 +224,12 @@ AMISensorInterface {
 		mSensor.finalize(this);
 		super.onDestroy();
 	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+	}
+
 	@Override
 	public void onNewIntent(Intent intent) {
 		mSensor.initialize(this);
