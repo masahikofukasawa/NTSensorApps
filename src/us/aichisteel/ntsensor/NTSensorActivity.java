@@ -18,7 +18,6 @@ package us.aichisteel.ntsensor;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
@@ -39,7 +38,6 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.PointStyle;
@@ -47,12 +45,10 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
-
 import us.aichisteel.amisensor.*;
 import us.aichisteel.ntsensor.R;
 
-public class NTSensorActivity extends Activity implements
-AMISensorInterface {
+public class NTSensorActivity extends Activity implements AMISensorInterface {
 
 	private NTSensor mSensor;
 	private Button btStart;
@@ -61,69 +57,73 @@ AMISensorInterface {
 	private RadioGroup rgSensorSelection;
 	private RadioButton rbSensorSelectionNT;
 	private RadioButton rbSensorSelectionUT;
-
-
 	private XYMultipleSeriesRenderer mRenderer;
-	private XYMultipleSeriesDataset dataset;
-	private GraphicalView graphicalView;
-
+	private XYMultipleSeriesDataset mDataset;
+	private GraphicalView mGraphicalView;
 	private double mXaxisMax = 5.0;
 
-
-	private XYMultipleSeriesDataset buildDataset(String[] titles,
-			List<double[]> xValues, List<double[]> yValues) {
+	private XYMultipleSeriesDataset buildDataset(
+			XYMultipleSeriesRenderer renderer, String[] titles, int[] colors,
+			PointStyle[] styles) {
 		XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
-		addXYSeries(dataset, titles, xValues, yValues, 0);
-		return dataset;
-	}
+		List<double[]> x = new ArrayList<double[]>();
+		List<double[]> y = new ArrayList<double[]>();
+		for (int i = 0; i < titles.length; i++) {
+			x.add(new double[] { 0 });
+			y.add(new double[] { 0 });
 
-	private void addXYSeries(XYMultipleSeriesDataset dataset, String[] titles,
-			List<double[]> xValues, List<double[]> yValues, int scale) {
-		int length = titles.length;
-		for (int i = 0; i < length; i++) {
-			XYSeries series = new XYSeries(titles[i], scale);
-			double[] xV = xValues.get(i);
-			double[] yV = yValues.get(i);
+			XYSeriesRenderer r = new XYSeriesRenderer();
+			r.setColor(colors[i]);
+			r.setPointStyle(styles[i]);
+			r.setFillPoints(true);
+			renderer.addSeriesRenderer(r);
+
+			XYSeries series = new XYSeries(titles[i], 0);
+			double[] xV = x.get(i);
+			double[] yV = y.get(i);
 			int seriesLength = xV.length;
 			for (int k = 0; k < seriesLength; k++) {
 				series.add(xV[k], yV[k]);
 			}
 			dataset.addSeries(series);
 		}
+		return dataset;
 	}
 
-	private XYMultipleSeriesRenderer buildRenderer(int[] colors,
-			PointStyle[] styles) {
+	private XYMultipleSeriesRenderer buildRenderer() {
 		XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
 		renderer.setAxisTitleTextSize(20);
 		renderer.setLabelsTextSize(20);
 		renderer.setPointSize(5f);
 		renderer.setMargins(new int[] { 20, 60, 15, 10 });
-		int length = colors.length;
-		for (int i = 0; i < length; i++) {
-			XYSeriesRenderer r = new XYSeriesRenderer();
-			r.setColor(colors[i]);
-			r.setPointStyle(styles[i]);
-			renderer.addSeriesRenderer(r);
-		}
+		renderer.setChartTitle("");
+		renderer.setXTitle("Time[sec]");
+		renderer.setYTitle("Level[nT]");
+		renderer.setXAxisMin(0);
+		renderer.setXAxisMax(mXaxisMax);
+		renderer.setYAxisMin(-100);
+		renderer.setYAxisMax(100);
+		renderer.setAxesColor(getResources().getColor(R.color.dark_blue));
+		renderer.setLabelsColor(getResources().getColor(R.color.dark_blue));
+		renderer.setXLabelsColor(getResources().getColor(R.color.dark_blue));
+		renderer.setYLabelsColor(0, getResources().getColor(R.color.dark_blue));
+		renderer.setApplyBackgroundColor(true);
+		renderer.setBackgroundColor(getResources()
+				.getColor(R.color.back_ground));
+		renderer.setMarginsColor(getResources().getColor(R.color.margin));
+		renderer.setGridColor(getResources().getColor(R.color.grid));
+		renderer.setXLabels(12);
+		renderer.setYLabels(12);
+		renderer.setShowLegend(false);
+		renderer.setShowGrid(true);
+		renderer.setXLabelsAlign(Align.CENTER);
+		renderer.setYLabelsAlign(Align.RIGHT);
+		renderer.setZoomButtonsVisible(false);
+		renderer.setZoomEnabled(false, true);
+		renderer.setPanEnabled(false, true);
+		renderer.setPanLimits(new double[] { 0, 60, -1000, 1000 });
+		renderer.setZoomLimits(new double[] { 0, 60, -1000, 1000 });
 		return renderer;
-	}
-
-	private void setChartSettings(XYMultipleSeriesRenderer renderer,
-			String title, String xTitle, String yTitle, double xMin,
-			double xMax, double yMin, double yMax, int axesColor,
-			int labelsColor) {
-		renderer.setChartTitle(title);
-		renderer.setXTitle(xTitle);
-		renderer.setYTitle(yTitle);
-		renderer.setXAxisMin(xMin);
-		renderer.setXAxisMax(xMax);
-		renderer.setYAxisMin(yMin);
-		renderer.setYAxisMax(yMax);
-		renderer.setAxesColor(axesColor);
-		renderer.setLabelsColor(labelsColor);
-		renderer.setXLabelsColor(labelsColor);
-		renderer.setYLabelsColor(0, labelsColor);
 	}
 
 	@Override
@@ -131,47 +131,14 @@ AMISensorInterface {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_ntsensor);
 
-		String[] titles = new String[] { "data" };
-		List<double[]> x = new ArrayList<double[]>();
-		for (int i = 0; i < titles.length; i++) {
-			x.add(new double[] { 0 });
-		}
-		List<double[]> values = new ArrayList<double[]>();
-		values.add(new double[] { 0 });
-		int[] colors = new int[] { Color.RED };
-		PointStyle[] styles = new PointStyle[] { PointStyle.POINT };
-
-		mRenderer = buildRenderer(colors, styles);
-		int length = mRenderer.getSeriesRendererCount();
-		for (int i = 0; i < length; i++) {
-			((XYSeriesRenderer) mRenderer.getSeriesRendererAt(i))
-					.setFillPoints(true);
-		}
-		setChartSettings(mRenderer, "", "Time[sec]", "Level[nT]", 0, mXaxisMax,
-				-100, 100, getResources().getColor(R.color.dark_blue),
-				getResources().getColor(R.color.dark_blue));
-		mRenderer.setApplyBackgroundColor(true);
-		mRenderer.setBackgroundColor(getResources().getColor(
-				R.color.back_ground));
-		mRenderer.setMarginsColor(getResources().getColor(R.color.margin));
-		mRenderer.setGridColor(getResources().getColor(R.color.grid));
-		mRenderer.setXLabels(12);
-		mRenderer.setYLabels(12);
-		mRenderer.setShowLegend(false);
-		mRenderer.setShowGrid(true);
-		mRenderer.setXLabelsAlign(Align.CENTER);
-		mRenderer.setYLabelsAlign(Align.RIGHT);
-		mRenderer.setZoomButtonsVisible(false);
-		mRenderer.setZoomEnabled(false, true);
-		mRenderer.setPanEnabled(false, true);
-		mRenderer.setPanLimits(new double[] { 0, 60, -1000, 1000 });
-		mRenderer.setZoomLimits(new double[] { 0, 60, -1000, 1000 });
-		dataset = buildDataset(titles, x, values);
+		mRenderer = buildRenderer();
+		mDataset = buildDataset(mRenderer, new String[] { "data" },
+				new int[] { Color.RED }, new PointStyle[] { PointStyle.POINT });
 
 		LinearLayout layout = (LinearLayout) findViewById(R.id.plot_area);
-		graphicalView = ChartFactory.getLineChartView(getApplicationContext(),
-				dataset, mRenderer);
-		layout.addView(graphicalView, new LayoutParams(
+		mGraphicalView = ChartFactory.getLineChartView(getApplicationContext(),
+				mDataset, mRenderer);
+		layout.addView(mGraphicalView, new LayoutParams(
 				LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 
 		btStart = (Button) findViewById(R.id.btStart);
@@ -251,12 +218,12 @@ AMISensorInterface {
 	public void dataReady() {
 		mSensor.setMaxTime(mRenderer.getXAxisMax());
 		double time = 0;
-		dataset.getSeriesAt(0).clear();
+		mDataset.getSeriesAt(0).clear();
 		for (Double data : mSensor.getData()) {
-			dataset.getSeriesAt(0).add(time, data);
+			mDataset.getSeriesAt(0).add(time, data);
 			time += (1.0 / NTSensor.NTSENSOR_SPS);
 		}
-		graphicalView.repaint();
+		mGraphicalView.repaint();
 	}
 
 	private void enableButtons(boolean enable) {
@@ -288,7 +255,8 @@ AMISensorInterface {
 	}
 
 	private void setOffset() {
-		double offset = mSensor.setOffset();
+		mSensor.setOffset();
+		double offset = mSensor.getLatestVoltage();
 		Toast.makeText(this, "Offset=" + String.valueOf(offset) + "[V]",
 				Toast.LENGTH_SHORT).show();
 	}
@@ -371,20 +339,18 @@ AMISensorInterface {
 					.setTitle("About")
 					.setIcon(android.R.drawable.ic_dialog_info)
 					.setMessage(
-									Html.fromHtml("<p>AMI Nano/Micro Tesla Sensor Application<br>"
-											+ "<a href=\"http://www.aichi-mi.com\">Aichi Micro Intelligent Corporation</a></p>"
-											+ "<p>This software includes the following works that are distributed in the Apache License 2.0.<br>"
-											+ " - Physicaloid Library<br>"
-											+ " - Achartengine 1.1.0</p>"
-											))
-					.show()
+							Html.fromHtml("<p>AMI Nano/Micro Tesla Sensor Application<br>"
+									+ "<a href=\"http://www.aichi-mi.com\">Aichi Micro Intelligent Corporation</a></p>"
+									+ "<p>This software includes the following works that are distributed in the Apache License 2.0.<br>"
+									+ " - Physicaloid Library<br>"
+									+ " - Achartengine 1.1.0</p>")).show()
 					.findViewById(android.R.id.message))
 					.setMovementMethod(LinkMovementMethod.getInstance());
 			break;
 
 		}
-		if (graphicalView != null) {
-			graphicalView.repaint();
+		if (mGraphicalView != null) {
+			mGraphicalView.repaint();
 		}
 		return false;
 	}
