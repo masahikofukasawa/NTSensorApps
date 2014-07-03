@@ -17,7 +17,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="onStart"
-          	android:textColor="@color/dark_blue"
+          	android:textColor="@color/text_color"
             android:text="@string/start_button" />
 
         <Button
@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="onStop"
-          	android:textColor="@color/dark_blue"
+          	android:textColor="@color/text_color"
             android:text="@string/stop_button" />
 
         <Button
@@ -33,7 +33,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:onClick="onOffset"
-          	android:textColor="@color/dark_blue"
+          	android:textColor="@color/text_color"
             android:text="@string/offset_button" />
 
         <RadioGroup
@@ -48,14 +48,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
-    	      	android:textColor="@color/dark_blue"
+    	      	android:textColor="@color/text_color"
                 android:text="@string/nT_name" />
 
             <RadioButton
                 android:id="@+id/rd_ut"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-	          	android:textColor="@color/dark_blue"
+	          	android:textColor="@color/text_color"
                 android:text="@string/uT_name" />
         </RadioGroup>
 
@@ -76,6 +76,13 @@
 
     <LinearLayout
         android:id="@+id/plot_area"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal" >
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/fft_area"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal" >

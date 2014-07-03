@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="dark_blue">#345777</color>
+    <color name="text_color">#345777</color>
     <color name="back_ground">#F7F4E2</color>
 	<color name="grid">#B1D6DC</color>
 	<color name="button">#B1D6DC</color>

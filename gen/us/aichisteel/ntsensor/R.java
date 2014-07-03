@@ -15,9 +15,9 @@ public final class R {
         public static final int actionbar_text=0x7f070006;
         public static final int back_ground=0x7f070001;
         public static final int button=0x7f070003;
-        public static final int dark_blue=0x7f070000;
         public static final int grid=0x7f070002;
         public static final int margin=0x7f070004;
+        public static final int text_color=0x7f070000;
     }
     public static final class dimen {
         /**  Default screen margins, per the Android Design guidelines. 
@@ -36,10 +36,11 @@ public final class R {
         public static final int stop=0x7f020003;
     }
     public static final class id {
-        public static final int action_settings=0x7f0a0009;
+        public static final int action_settings=0x7f0a000a;
         public static final int btOffset=0x7f0a0002;
         public static final int btStart=0x7f0a0000;
         public static final int btStop=0x7f0a0001;
+        public static final int fft_area=0x7f0a0009;
         public static final int plot_area=0x7f0a0008;
         public static final int radioGroup1=0x7f0a0003;
         public static final int rd_nt=0x7f0a0004;
@@ -56,14 +57,13 @@ public final class R {
     public static final class string {
         public static final int action_settings=0x7f050001;
         public static final int app_name=0x7f050000;
-        public static final int close_button=0x7f050004;
-        public static final int hello_world=0x7f050002;
-        public static final int nT_name=0x7f050008;
-        public static final int offset_button=0x7f050007;
-        public static final int open_button=0x7f050003;
-        public static final int start_button=0x7f050005;
-        public static final int stop_button=0x7f050006;
-        public static final int uT_name=0x7f050009;
+        public static final int close_button=0x7f050003;
+        public static final int nT_name=0x7f050007;
+        public static final int offset_button=0x7f050006;
+        public static final int open_button=0x7f050002;
+        public static final int start_button=0x7f050004;
+        public static final int stop_button=0x7f050005;
+        public static final int uT_name=0x7f050008;
     }
     public static final class style {
         /** 
