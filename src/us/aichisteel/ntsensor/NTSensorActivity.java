@@ -30,6 +30,7 @@ import android.graphics.Point;
 import android.graphics.Paint.Align;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+//import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,7 +46,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
+import org.achartengine.chart.LineChart;
 import org.achartengine.chart.PointStyle;
+import org.achartengine.chart.ScatterChart;
 import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
@@ -62,7 +65,7 @@ import static java.lang.Math.pow;
 import static java.lang.Math.abs;
 
 public class NTSensorActivity extends Activity implements AMISensorInterface {
-
+	// private static final String TAG = NTSensorActivity.class.getSimpleName();
 	private NTSensor mSensor;
 	private Button btStart;
 	private Button btStop;
@@ -70,6 +73,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 	private RadioGroup rgSensorSelection;
 	private RadioButton rbSensorSelectionNT;
 	private RadioButton rbSensorSelectionUT;
+	// private TextView tvText;
 
 	private XYMultipleSeriesRenderer mRendererTime;
 	private XYMultipleSeriesDataset mDatasetTime;
@@ -83,10 +87,14 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 	private boolean mIsChartTimeActive = true;
 	private boolean mIsChartFreqActive = false;
 
+	private double mMaxLevel = 0;
+	private double mMaxLevelFreq = 0;
+
 	@SuppressWarnings("deprecation")
 	private XYMultipleSeriesDataset buildDataset(
 			XYMultipleSeriesRenderer renderer, String[] titles, int[] colors,
-			PointStyle[] styles, boolean[] fill_below, int[] fill_colors) {
+			PointStyle[] styles, boolean[] fill_below, int[] fill_colors,
+			boolean[] disp_value) {
 		XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
 		List<double[]> x = new ArrayList<double[]>();
 		List<double[]> y = new ArrayList<double[]>();
@@ -100,6 +108,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 			r.setFillPoints(true);
 			r.setFillBelowLine(fill_below[i]);
 			r.setFillBelowLineColor(fill_colors[i]);
+			r.setDisplayChartValues(disp_value[i]);
 			renderer.addSeriesRenderer(r);
 
 			XYSeries series = new XYSeries(titles[i], 0);
@@ -161,7 +170,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 			} else {
 				form = new DecimalFormat("0");
 			}
-			for (int j = 2; j <= 9; j++) {
+			for (int j = 1; j <= 10; j++) {
 				if (range > 15) {
 					renderer.addXTextLabel(10 * log10(j) + 10 * (i), "");
 				} else {
@@ -177,7 +186,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 			double max) {
 		DecimalFormat form;
 		double range = max - min;
-		for (int i = 0; i <= 8; i++) {
+		for (int i = 0; i <= 9; i++) {
 			String zero = "";
 			if (pow(10, i - 5) < 1) {
 				for (int z = 0; z < abs(i - 5); z++)
@@ -206,11 +215,11 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		renderer.setMargins(new int[] { 20, 50, 15, 15 });
 		renderer.setChartTitle("Frequency Domain");
 		renderer.setXTitle("Frequency[Hz]");
-		renderer.setYTitle("Amplitude[nT](TBD)");
+		renderer.setYTitle("Amplitude[nT/√Hz]");
 		renderer.setXAxisMin(0);
 		renderer.setXAxisMax(30);
-		renderer.setYAxisMin(20);
-		renderer.setYAxisMax(70);
+		renderer.setYAxisMin(10);
+		renderer.setYAxisMax(90);
 		renderer.setAxesColor(getResources().getColor(R.color.text_color));
 		renderer.setLabelsColor(getResources().getColor(R.color.text_color));
 		renderer.setXLabelsColor(getResources().getColor(R.color.text_color));
@@ -228,8 +237,8 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		renderer.setZoomButtonsVisible(false);
 		renderer.setZoomEnabled(true, true);
 		renderer.setPanEnabled(true, true);
-		renderer.setPanLimits(new double[] { 0, 30, 10, 80 });
-		renderer.setZoomLimits(new double[] { 0, 30, 10, 80 });
+		renderer.setPanLimits(new double[] { 0, 30, 10, 90 });
+		renderer.setZoomLimits(new double[] { 0, 30, 10, 90 });
 
 		renderer.setXLabels(0);
 		renderer.setYLabels(0);
@@ -250,7 +259,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		mDatasetTime = buildDataset(mRendererTime, new String[] { "data" },
 				new int[] { Color.BLUE },
 				new PointStyle[] { PointStyle.POINT }, new boolean[] { false },
-				new int[] { 0 });
+				new int[] { 0 }, new boolean[] { false });
 		mGraphicalViewTime = ChartFactory.getLineChartView(
 				getApplicationContext(), mDatasetTime, mRendererTime);
 		LinearLayout layout = (LinearLayout) findViewById(R.id.plot_area);
@@ -258,12 +267,16 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 				LayoutParams.FILL_PARENT, LayoutParams.MATCH_PARENT));
 
 		mRendererFreq = buildRendererFft();
-		mDatasetFreq = buildDataset(mRendererFreq, new String[] { "data" },
-				new int[] { Color.BLUE },
-				new PointStyle[] { PointStyle.POINT }, new boolean[] { true },
-				new int[] { Color.LTGRAY });
-		mGraphicalViewFreq = ChartFactory.getLineChartView(
-				getApplicationContext(), mDatasetFreq, mRendererFreq);
+		mDatasetFreq = buildDataset(mRendererFreq,
+				new String[] { "data", "max" }, new int[] { Color.BLUE,
+						Color.RED }, new PointStyle[] { PointStyle.POINT,
+						PointStyle.DIAMOND }, new boolean[] { true, false },
+				new int[] { Color.LTGRAY, Color.RED }, new boolean[] { false,
+						false });
+		mGraphicalViewFreq = (GraphicalView) ChartFactory
+				.getCombinedXYChartView(getBaseContext(), mDatasetFreq,
+						mRendererFreq, new String[] { LineChart.TYPE,
+								ScatterChart.TYPE });
 		LinearLayout layout_fft = (LinearLayout) findViewById(R.id.fft_area);
 		layout_fft.addView(mGraphicalViewFreq, new LayoutParams(
 				LayoutParams.FILL_PARENT, LayoutParams.MATCH_PARENT));
@@ -277,6 +290,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		rgSensorSelection.check(R.id.rd_nt);
 		rbSensorSelectionNT = (RadioButton) findViewById(R.id.rd_nt);
 		rbSensorSelectionUT = (RadioButton) findViewById(R.id.rd_ut);
+		// tvText = (TextView)findViewById(R.id.tvSerial);
 		btOffset.setVisibility(View.GONE);
 		rgSensorSelection.setVisibility(View.GONE);
 
@@ -291,6 +305,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 			@Override
 			public void onClick(View v) {
 				mSensor.startSensor();
+				// Log.e(TAG, "NTSensorActivity: Start");
 			}
 		});
 
@@ -298,6 +313,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 			@Override
 			public void onClick(View v) {
 				mSensor.stopSensor();
+				// Log.e(TAG, "NTSensorActivity: Stop");
 			}
 		});
 
@@ -321,6 +337,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 				setYLogGrid(mRendererFreq, mRendererFreq.getYAxisMin(),
 						mRendererFreq.getYAxisMax());
 			}
+
 			public void zoomReset() {
 				setXLogGrid(mRendererFreq, 0, 30);
 				setYLogGrid(mRendererFreq, 20, 70);
@@ -369,20 +386,58 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 
 	@Override
 	public void dataReady() {
+		DecimalFormat form = new DecimalFormat("0.00");
 		double time = 0;
+		double peakP = 0;
+		double peakN = 0;
 		mDatasetTime.getSeriesAt(0).clear();
 		for (Double data : mSensor.getData()) {
 			mDatasetTime.getSeriesAt(0).add(time, data);
 			time += (1.0 / NTSensor.NTSENSOR_SPS);
+			if (peakP < data) {
+				peakP = data;
+			}
+			if (peakN > data) {
+				peakN = data;
+			}
 		}
+		mRendererTime.setChartTitle("Time Domain: "
+				+ String.valueOf(form.format(peakP - peakN)) + "[nTpp]");
 		mGraphicalViewTime.repaint();
 
+		mMaxLevel = 0;
+		mMaxLevelFreq = 0;
 		mDatasetFreq.getSeriesAt(0).clear();
-		mFft.AmiFftCalc(mSensor.getData(), true);
-		for (int i = 0; i < mFft.getNum(); i++) {
-			mDatasetFreq.getSeriesAt(0).add(mFft.getFreq().get(i),
-					mFft.getLevel().get(i) + 30);
+		mDatasetFreq.getSeriesAt(1).clear();
+		if (mFft.AmiFftCalc(mSensor.getData())) {
+			return;
 		}
+
+		for (int i = 0; i < mFft.getNum(); i++) {
+			mDatasetFreq.getSeriesAt(0).add(
+					10 * log10(mFft.getFreq().get(i)) + 10,
+					10 * log10(mFft.getLevel().get(i)) + 50);
+			// mDatasetFreq.getSeriesAt(0).add(mFft.getFreq().get(i),
+			// mFft.getLevel().get(i) + 20);
+			if (mFft.getFreq().get(i) >= pow(10,
+					(mRendererFreq.getXAxisMin() - 10) / 10)
+					&& mFft.getFreq().get(i) <= pow(10,
+							(mRendererFreq.getXAxisMax() - 10) / 10)) {
+				if (mMaxLevel < mFft.getLevel().get(i)) {
+					mMaxLevel = mFft.getLevel().get(i);
+					mMaxLevelFreq = mFft.getFreq().get(i);
+				}
+			}
+		}
+
+		// DecimalFormat form = new DecimalFormat("0.00");
+		// tvText.setText("Peak=" + String.valueOf(form.format(mMaxLevel)) +
+		// "[nT] at " + String.valueOf(form.format(mMaxLevelFreq)));
+		mRendererFreq.setChartTitle("Frequency Domain: Peak="
+				+ String.valueOf(form.format(mMaxLevel)) + "[nT/√Hz] @"
+				+ String.valueOf(form.format(mMaxLevelFreq)) + "[Hz]");
+		mDatasetFreq.getSeriesAt(1).add(10 * log10(mMaxLevelFreq) + 10,
+				10 * log10(mMaxLevel) + 50);
 		mGraphicalViewFreq.repaint();
 	}
 
@@ -409,10 +464,10 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 	private void setSensor(int id) {
 		if (id == R.id.rd_nt) {
 			mRendererTime.setYTitle("Amplitude[nT]");
-			mRendererFreq.setYTitle("Amplitude[nT](TBD)");
+			mRendererFreq.setYTitle("Amplitude[nT/√Hz]");
 		} else if (id == R.id.rd_ut) {
 			mRendererTime.setYTitle("Amplitude[uT]");
-			mRendererFreq.setYTitle("Amplitude[uT](TBD)");
+			mRendererFreq.setYTitle("Amplitude[nT/√Hz]");
 		}
 	}
 
@@ -524,7 +579,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 			int time = Integer.parseInt(item.getTitle().toString());
 			mSensor.setMaxTime(time);
 			mRendererTime.setXAxisMax(time);
-			mFft = new AmiFft(time * NTSensor.NTSENSOR_SPS,
+			mFft = new AmiFft((int) (time * NTSensor.NTSENSOR_SPS),
 					(1.0 / NTSensor.NTSENSOR_SPS));
 			item.setChecked(item.isChecked() ? false : true);
 			break;
