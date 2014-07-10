@@ -215,7 +215,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		renderer.setMargins(new int[] { 20, 50, 15, 15 });
 		renderer.setChartTitle("Frequency Domain");
 		renderer.setXTitle("Frequency[Hz]");
-		renderer.setYTitle("Amplitude[nT/√Hz]");
+		renderer.setYTitle("Amplitude[nT]");
 		renderer.setXAxisMin(0);
 		renderer.setXAxisMax(30);
 		renderer.setYAxisMin(10);
@@ -434,7 +434,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		// tvText.setText("Peak=" + String.valueOf(form.format(mMaxLevel)) +
 		// "[nT] at " + String.valueOf(form.format(mMaxLevelFreq)));
 		mRendererFreq.setChartTitle("Frequency Domain: Peak="
-				+ String.valueOf(form.format(mMaxLevel)) + "[nT/√Hz] @"
+				+ String.valueOf(form.format(mMaxLevel)) + "[nT] @"
 				+ String.valueOf(form.format(mMaxLevelFreq)) + "[Hz]");
 		mDatasetFreq.getSeriesAt(1).add(10 * log10(mMaxLevelFreq) + 10,
 				10 * log10(mMaxLevel) + 50);
@@ -464,10 +464,10 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 	private void setSensor(int id) {
 		if (id == R.id.rd_nt) {
 			mRendererTime.setYTitle("Amplitude[nT]");
-			mRendererFreq.setYTitle("Amplitude[nT/√Hz]");
+			mRendererFreq.setYTitle("Amplitude[nT]");
 		} else if (id == R.id.rd_ut) {
 			mRendererTime.setYTitle("Amplitude[uT]");
-			mRendererFreq.setYTitle("Amplitude[nT/√Hz]");
+			mRendererFreq.setYTitle("Amplitude[uT]");
 		}
 	}
 
