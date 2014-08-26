@@ -19,10 +19,14 @@ package us.aichisteel.ntsensor;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.Bundle;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -30,20 +34,23 @@ import android.graphics.Point;
 import android.graphics.Paint.Align;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-//import android.util.Log;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import org.achartengine.ChartFactory;
 import org.achartengine.GraphicalView;
 import org.achartengine.chart.LineChart;
@@ -72,6 +79,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 	private Button btOffset;
 	private RadioGroup rgSensorSelection;
 	private RadioButton rbSensorSelectionNT;
+	private RadioButton rbSensorSelectionDNT;
 	private RadioButton rbSensorSelectionUT;
 	// private TextView tvText;
 
@@ -89,6 +97,10 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 
 	private double mMaxLevel = 0;
 	private double mMaxLevelFreq = 0;
+
+	private int mAlertThreshold = 600;
+
+	private String mUnit = "nT";
 
 	@SuppressWarnings("deprecation")
 	private XYMultipleSeriesDataset buildDataset(
@@ -256,10 +268,12 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		setContentView(R.layout.activity_ntsensor);
 
 		mRendererTime = buildRenderer();
-		mDatasetTime = buildDataset(mRendererTime, new String[] { "data" },
-				new int[] { Color.BLUE },
-				new PointStyle[] { PointStyle.POINT }, new boolean[] { false },
-				new int[] { 0 }, new boolean[] { false });
+		mDatasetTime = buildDataset(mRendererTime, new String[] { "data",
+				"threshold_lo", "threshold_hi" }, new int[] { Color.BLUE,
+				Color.RED, Color.RED }, new PointStyle[] { PointStyle.POINT,
+				PointStyle.POINT, PointStyle.POINT }, new boolean[] { false,
+				false, false }, new int[] { 0, 0, 0 }, new boolean[] { false,
+				false, false });
 		mGraphicalViewTime = ChartFactory.getLineChartView(
 				getApplicationContext(), mDatasetTime, mRendererTime);
 		LinearLayout layout = (LinearLayout) findViewById(R.id.plot_area);
@@ -289,6 +303,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		rgSensorSelection = (RadioGroup) findViewById(R.id.radioGroup1);
 		rgSensorSelection.check(R.id.rd_nt);
 		rbSensorSelectionNT = (RadioButton) findViewById(R.id.rd_nt);
+		rbSensorSelectionDNT = (RadioButton) findViewById(R.id.rd_dnt);
 		rbSensorSelectionUT = (RadioButton) findViewById(R.id.rd_ut);
 		// tvText = (TextView)findViewById(R.id.tvSerial);
 		btOffset.setVisibility(View.GONE);
@@ -298,6 +313,8 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		mSensor.initializeSensor();
 		enableButtons(mSensor.isReady());
 		mSensor.setMaxTime(DEFAULT_TIME);
+		setAlertThresholdLine();
+
 		mFft = new AmiFft((int) (DEFAULT_TIME * NTSensor.NTSENSOR_SPS),
 				(1.0 / NTSensor.NTSENSOR_SPS));
 
@@ -401,8 +418,21 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 				peakN = data;
 			}
 		}
+
+		if (mIsChartTimeActive) {
+			if (peakP > mAlertThreshold | peakN < -1 * mAlertThreshold) {
+				mRendererTime.setBackgroundColor(getResources().getColor(
+						R.color.caution_color));
+				beep();
+			} else {
+				mRendererTime.setBackgroundColor(getResources().getColor(
+						R.color.back_ground));
+			}
+		}
+
 		mRendererTime.setChartTitle("Time Domain: "
-				+ String.valueOf(form.format(peakP - peakN)) + "[nTpp]");
+				+ String.valueOf(form.format(peakP - peakN)) + "[" + mUnit
+				+ "pp]");
 		mGraphicalViewTime.repaint();
 
 		mMaxLevel = 0;
@@ -434,7 +464,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		// tvText.setText("Peak=" + String.valueOf(form.format(mMaxLevel)) +
 		// "[nT] at " + String.valueOf(form.format(mMaxLevelFreq)));
 		mRendererFreq.setChartTitle("Frequency Domain: Peak="
-				+ String.valueOf(form.format(mMaxLevel)) + "[nT] @"
+				+ String.valueOf(form.format(mMaxLevel)) + "[" + mUnit + "] @"
 				+ String.valueOf(form.format(mMaxLevelFreq)) + "[Hz]");
 		mDatasetFreq.getSeriesAt(1).add(10 * log10(mMaxLevelFreq) + 10,
 				10 * log10(mMaxLevel) + 50);
@@ -446,6 +476,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		btStop.setEnabled(enable);
 		btOffset.setEnabled(enable);
 		rbSensorSelectionNT.setEnabled(enable);
+		rbSensorSelectionDNT.setEnabled(enable);
 		rbSensorSelectionUT.setEnabled(enable);
 
 		int color;
@@ -458,17 +489,23 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 		btStop.setTextColor(color);
 		btOffset.setTextColor(color);
 		rbSensorSelectionNT.setTextColor(color);
+		rbSensorSelectionDNT.setTextColor(color);
 		rbSensorSelectionUT.setTextColor(color);
 	}
 
 	private void setSensor(int id) {
 		if (id == R.id.rd_nt) {
-			mRendererTime.setYTitle("Amplitude[nT]");
-			mRendererFreq.setYTitle("Amplitude[nT]");
+			mUnit = "nT";
+			mSensor.setSensitivity(4);
+		} else if (id == R.id.rd_dnt) {
+			mUnit = "nT";
+			mSensor.setSensitivity(2);
 		} else if (id == R.id.rd_ut) {
-			mRendererTime.setYTitle("Amplitude[uT]");
-			mRendererFreq.setYTitle("Amplitude[uT]");
+			mUnit = "uT";
+			mSensor.setSensitivity(4);
 		}
+		mRendererTime.setYTitle("Amplitude[" + mUnit + "]");
+		mRendererFreq.setYTitle("Amplitude[" + mUnit + "]");
 	}
 
 	private void setOffset() {
@@ -479,7 +516,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 	}
 
 	private enum MenuId {
-		CHART_MENU, CHART_TIME, CHART_FREQ, DISPLAY_TIME, DISPLAY_TIME_1SEC, DISPLAY_TIME_2SEC, DISPLAY_TIME_3SEC, DISPLAY_TIME_4SEC, DISPLAY_TIME_5SEC, DISPLAY_TIME_10SEC, SENSOR_TYPE, SENSOR_TYPE_NT, SENSOR_TYPE_UT, SET_OFFSET, ABOUT;
+		CHART_MENU, CHART_TIME, CHART_FREQ, DISPLAY_TIME, DISPLAY_TIME_1SEC, DISPLAY_TIME_2SEC, DISPLAY_TIME_3SEC, DISPLAY_TIME_4SEC, DISPLAY_TIME_5SEC, DISPLAY_TIME_10SEC, SENSOR_TYPE, SENSOR_TYPE_NT, SENSOR_TYPE_DNT, SENSOR_TYPE_UT, SET_OFFSET, ABOUT, CAUTION_SETTINGS;
 	}
 
 	public static <E extends Enum<E>> E fromOrdinal(Class<E> enumClass,
@@ -543,6 +580,8 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 				MenuId.SENSOR_TYPE.ordinal(), Menu.NONE, "Sensor Type");
 		sensorMenu.add(Menu.NONE, MenuId.SENSOR_TYPE_NT.ordinal(), Menu.NONE,
 				"nT Sensor");
+		sensorMenu.add(Menu.NONE, MenuId.SENSOR_TYPE_DNT.ordinal(), Menu.NONE,
+				"Differential nT Sensor");
 		sensorMenu.add(Menu.NONE, MenuId.SENSOR_TYPE_UT.ordinal(), Menu.NONE,
 				"uT Sensor");
 		sensorMenu.setGroupCheckable(Menu.NONE, true, true);
@@ -550,6 +589,8 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 
 		menu.add(Menu.NONE, MenuId.SET_OFFSET.ordinal(), Menu.NONE,
 				"Set Offset");
+		menu.add(Menu.NONE, MenuId.CAUTION_SETTINGS.ordinal(), Menu.NONE,
+				"Alert Threshold");
 		menu.add(Menu.NONE, MenuId.ABOUT.ordinal(), Menu.NONE, "About");
 
 		return super.onCreateOptionsMenu(menu);
@@ -589,12 +630,19 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 			setSensor(R.id.rd_nt);
 			item.setChecked(item.isChecked() ? false : true);
 			break;
+		case SENSOR_TYPE_DNT:
+			setSensor(R.id.rd_dnt);
+			item.setChecked(item.isChecked() ? false : true);
+			break;
 		case SENSOR_TYPE_UT:
 			setSensor(R.id.rd_ut);
 			item.setChecked(item.isChecked() ? false : true);
 			break;
 		case SET_OFFSET:
 			setOffset();
+			break;
+		case CAUTION_SETTINGS:
+			displaySeakBar();
 			break;
 		case ABOUT:
 			((TextView) new AlertDialog.Builder(NTSensorActivity.this)
@@ -609,10 +657,75 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 					.findViewById(android.R.id.message))
 					.setMovementMethod(LinkMovementMethod.getInstance());
 			break;
-
+		default:
+			break;
 		}
 		mGraphicalViewTime.repaint();
 		mGraphicalViewFreq.repaint();
 		return false;
+	}
+
+	public void beep() {
+		ToneGenerator toneGenerator = new ToneGenerator(
+				AudioManager.STREAM_SYSTEM, ToneGenerator.MAX_VOLUME);
+		toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP);
+	}
+
+	public void setAlertThresholdLine() {
+		mDatasetTime.getSeriesAt(1).clear();
+		mDatasetTime.getSeriesAt(2).clear();
+		for (int time = 0; time <= mSensor.getMaxTime(); time++) {
+			mDatasetTime.getSeriesAt(1).add(time, -1 * mAlertThreshold);
+			mDatasetTime.getSeriesAt(2).add(time, 1 * mAlertThreshold);
+		}
+		mGraphicalViewTime.repaint();
+	}
+
+	public void displaySeakBar() {
+		final AlertDialog.Builder popDialog = new AlertDialog.Builder(this);
+		LayoutInflater inflater = (LayoutInflater) this
+				.getSystemService(LAYOUT_INFLATER_SERVICE);
+		View layout = inflater.inflate(R.layout.seekbar_dialog,
+				(ViewGroup) findViewById(R.id.seek_dialog));
+		final TextView item1 = (TextView) layout.findViewById(R.id.textView1);
+
+		popDialog.setIcon(android.R.drawable.btn_star_big_on);
+		popDialog.setTitle("Please set alert threshold.");
+		popDialog.setView(layout);
+		SeekBar seek1 = (SeekBar) layout.findViewById(R.id.seekBar1);
+		item1.setText("Threshold : +/-" + mAlertThreshold + " [" + mUnit + "]");
+		seek1.setProgress(mAlertThreshold);
+		seek1.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				// Do something here with new value
+				item1.setText("Threshold : +/-" + progress + " [" + mUnit + "]");
+				mAlertThreshold = progress;
+				setAlertThresholdLine();
+			}
+
+			public void onStartTrackingTouch(SeekBar arg0) {
+				// TODO Auto-generated method stub
+
+			}
+
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+		popDialog.setPositiveButton("OK",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						Toast.makeText(
+								NTSensorActivity.this,
+								"Alert Threshold=" + mAlertThreshold + "["
+										+ mUnit + "]", Toast.LENGTH_SHORT)
+								.show();
+						dialog.dismiss();
+					}
+				});
+		popDialog.create();
+		popDialog.show();
 	}
 }

@@ -8,7 +8,8 @@
 
     <string name="stop_button">Stop</string>
     <string name="offset_button">Set Offset</string>
-    <string name="nT_name">nT Sensor</string>
-    <string name="uT_name">uT Sensor</string>
+    <string name="nT_name">nT</string>
+    <string name="uT_name">uT</string>
+    <string name="dnT_name">Diff nT</string>
 
 </resources>

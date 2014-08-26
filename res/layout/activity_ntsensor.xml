@@ -52,6 +52,13 @@
                 android:text="@string/nT_name" />
 
             <RadioButton
+                android:id="@+id/rd_dnt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+    	      	android:textColor="@color/text_color"
+                android:text="@string/dnT_name" />
+
+            <RadioButton
                 android:id="@+id/rd_ut"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -71,6 +78,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:typeface="monospace" />
+
         </ScrollView>
     </LinearLayout>
 

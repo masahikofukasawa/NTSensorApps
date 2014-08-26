@@ -15,6 +15,7 @@ public final class R {
         public static final int actionbar_text=0x7f070006;
         public static final int back_ground=0x7f070001;
         public static final int button=0x7f070003;
+        public static final int caution_color=0x7f070007;
         public static final int grid=0x7f070002;
         public static final int margin=0x7f070004;
         public static final int text_color=0x7f070000;
@@ -36,20 +37,25 @@ public final class R {
         public static final int stop=0x7f020003;
     }
     public static final class id {
-        public static final int action_settings=0x7f0a000a;
+        public static final int action_settings=0x7f0a000e;
         public static final int btOffset=0x7f0a0002;
         public static final int btStart=0x7f0a0000;
         public static final int btStop=0x7f0a0001;
-        public static final int fft_area=0x7f0a0009;
-        public static final int plot_area=0x7f0a0008;
+        public static final int fft_area=0x7f0a000a;
+        public static final int plot_area=0x7f0a0009;
         public static final int radioGroup1=0x7f0a0003;
+        public static final int rd_dnt=0x7f0a0005;
         public static final int rd_nt=0x7f0a0004;
-        public static final int rd_ut=0x7f0a0005;
-        public static final int svText=0x7f0a0006;
-        public static final int tvSerial=0x7f0a0007;
+        public static final int rd_ut=0x7f0a0006;
+        public static final int seekBar1=0x7f0a000d;
+        public static final int seek_dialog=0x7f0a000b;
+        public static final int svText=0x7f0a0007;
+        public static final int textView1=0x7f0a000c;
+        public static final int tvSerial=0x7f0a0008;
     }
     public static final class layout {
         public static final int activity_ntsensor=0x7f030000;
+        public static final int seekbar_dialog=0x7f030001;
     }
     public static final class menu {
         public static final int ntsensor=0x7f090000;
@@ -58,6 +64,7 @@ public final class R {
         public static final int action_settings=0x7f050001;
         public static final int app_name=0x7f050000;
         public static final int close_button=0x7f050003;
+        public static final int dnT_name=0x7f050009;
         public static final int nT_name=0x7f050007;
         public static final int offset_button=0x7f050006;
         public static final int open_button=0x7f050002;

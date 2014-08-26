@@ -7,4 +7,5 @@
 	<color name="margin">#D7D4C2</color>
 	<color name="actionbar_background">#F7F7F7</color>
 	<color name="actionbar_text">#FF0101</color>
+	<color name="caution_color">#FFFF66</color>
 </resources>
