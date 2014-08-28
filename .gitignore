@@ -26,7 +26,8 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must ends with two \r.
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -34,3 +35,32 @@ Icon
 # Files that might appear on external disk
 .Spotlight-V100
 .Trashes
+bin/classes/us/aichisteel/amisensor/R$drawable.class
+bin/classes/us/aichisteel/amisensor/R$string.class
+bin/classes/us/aichisteel/amisensor/R$style.class
+bin/classes/us/aichisteel/amisensor/R.class
+bin/classes/us/aichisteel/ntsensor/NTSensorActivity$1.class
+bin/classes/us/aichisteel/ntsensor/NTSensorActivity$2.class
+bin/classes/us/aichisteel/ntsensor/NTSensorActivity$3.class
+bin/classes/us/aichisteel/ntsensor/NTSensorActivity$4.class
+bin/classes/us/aichisteel/ntsensor/NTSensorActivity$5.class
+bin/classes/us/aichisteel/ntsensor/NTSensorActivity$6.class
+bin/classes/us/aichisteel/ntsensor/NTSensorActivity$MenuId.class
+bin/classes/us/aichisteel/ntsensor/NTSensorActivity.class
+bin/classes/us/aichisteel/ntsensor/R$color.class
+bin/classes/us/aichisteel/ntsensor/R$dimen.class
+bin/classes/us/aichisteel/ntsensor/R$drawable.class
+bin/classes/us/aichisteel/ntsensor/R$id.class
+bin/classes/us/aichisteel/ntsensor/R$layout.class
+bin/classes/us/aichisteel/ntsensor/R$menu.class
+bin/classes/us/aichisteel/ntsensor/R$string.class
+bin/classes/us/aichisteel/ntsensor/R$style.class
+bin/classes/us/aichisteel/ntsensor/R$xml.class
+bin/dexedLibs/achartengine-1.1.0-b1b083ac3cf9f7d3078fb759988fded9.jar
+bin/dexedLibs/amisensor-e535ca63763ed3cff41e841c8d02528e.jar
+bin/dexedLibs/android-support-v4-4fd4b5c4a77278bca00f7fe51e6a9519.jar
+bin/dexedLibs/annotations-a26b6c11bf963e722dbc5849bed4e87d.jar
+bin/dexedLibs/d2xx-ce6e87fd0007c3b50b5c63f30579a4e3.jar
+bin/dexedLibs/physicaloidlibrary-a28d587579feff313d562c353665daff.jar
+gen/
+bin/
