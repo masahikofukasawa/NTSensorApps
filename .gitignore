@@ -62,3 +62,5 @@ bin/dexedLibs/android-support-v4-4fd4b5c4a77278bca00f7fe51e6a9519.jar
 bin/dexedLibs/annotations-a26b6c11bf963e722dbc5849bed4e87d.jar
 bin/dexedLibs/d2xx-ce6e87fd0007c3b50b5c63f30579a4e3.jar
 bin/dexedLibs/physicaloidlibrary-a28d587579feff313d562c353665daff.jar
+bin/
+gen/
