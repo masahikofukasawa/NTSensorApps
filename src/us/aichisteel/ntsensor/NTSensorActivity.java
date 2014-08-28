@@ -90,7 +90,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 	private XYMultipleSeriesRenderer mRendererFreq;
 	private XYMultipleSeriesDataset mDatasetFreq;
 	private GraphicalView mGraphicalViewFreq;
-	private final static double DEFAULT_TIME = 5.0;
+	private final static double DEFAULT_TIME = 2.0;
 	private AmiFft mFft;
 	private boolean mIsChartTimeActive = true;
 	private boolean mIsChartFreqActive = false;
@@ -98,7 +98,7 @@ public class NTSensorActivity extends Activity implements AMISensorInterface {
 	private double mMaxLevel = 0;
 	private double mMaxLevelFreq = 0;
 
-	private int mAlertThreshold = 600;
+	private int mAlertThreshold = 70;
 
 	private String mUnit = "nT";
 
